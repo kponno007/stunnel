@@ -1,0 +1,100 @@
+TUTORIAL VPS CENTOS
+SETUP WEBMIN
+
+update dulu
+yum update
+install paket-paket lainnya
+yum install –y nano perl wget curl
+download paketnya
+wget http://prdownloads.sourceforge.net/webadmin/webmin-1.660-1.noarch.rpm
+install
+rpm -U webmin-1.660-1.noarch.rpm
+service webmin status
+service webmin start
+Agar squid jalan otomatis ketika reboot, ketik command berikut
+chkconfig webmin on
+
+DROPBEAR
+wget http://dl.fedoraproject.org/pub/epel/5/i386/dropbear-0.55-1.el5.i386.rpm 
+
+rpm -Uvh dropbear-0.55-1.el5.i386.rpm
+tambah port
+echo "OPTIONS=\"-p 109 -p 110 -p 443\"" > /etc/sysconfig/dropbear
+service dropbear start
+chkconfig dropbear on
+
+kalo maun Dropbear n OpenSSH  jalan bersamaan dlm 1 vps set port OpenSSH utk memastikan port tidak berjalan pada dropbear
+
+nano /etc/ssh/sshd_config
+
+INSTALL SQUID
+yum install squid
+nano /etc/squid/squid.conf
+tambah config ini
+#add define hostname
+visible_hostname faiz.com
+# add auth_params
+auth_param basic program /usr/lib/squid/ncsa_auth /etc/squid/passwd
+auth_param basic children 2
+auth_param basic realm My Proxy Server
+auth_param basic credentialsttl 24 hours
+auth_param basic casesensitive off
+# add acl rules
+acl users proxy_auth REQUIRED
+# http access rules
+http_access deny !users
+http_access allow users
+#hide IP
+forwarded_for off
+Jika ingin mengubah port squid edit sesuai selera pada bagian http_port 3128 ( default port squid 3128 )
+save squid.conf
+Menambahkan username dan password untuk squid proxy
+touch /etc/squid/passwd
+chown root.squid /etc/squid/passwd
+chmod 640 /etc/squid/passwd
+htpasswd /etc/squid/passwd USER
+
+Jika memakai htpasswd tidak bisa, seperti hasil dibawah ini:
+
+-bash: htpasswd: command not found
+Solusinya bisa menggunakan 2 cara sebagai berikut:
+Pertama install httpd-devel via yum
+yum install httpd-devel
+Cara Delete User :
+Ketikan command :
+htpasswd -D /etc/squid/squid_passwd USER
+Note = User = Nama Usernya
+============
+Lihat user sedang buka website apa :
+Ketikan command : 
+tail -f /var/log/squid/access.log
+Note = Jangan keasikan ngintip
+============
+Membuat direktori cace untuk squid ( cache_dir )
+squid -z
+Jalankan squid proxy
+squid -D
+service squid restart
+Agar squid jalan otomatis ketika reboot, ketik command berikut
+chkconfig squid on
+
+Download Script Penunjang
+
+wget -O speedtest_cli.py "https://github.com/youree82/centos6/raw/master/speedtest_cli.py"
+wget -O bench-network.sh "https://github.com/youree82/centos6/raw/master/bench-network.sh"
+wget -O ps_mem.py "https://github.com/youree82/centos6/raw/master/ps_mem.py"
+wget -O user-list "http://pastebin.com/raw.php?i=Vz61yXHp"
+wget -O user-login.sh "http://pastebin.com/raw.php?i=DtmPxi5x"
+
+Beri hak akses biar bisa di eksekusi
+Chmod +x *
+
+Cara cek kecepatan internet server : python speedtest_cli.py
+Kalau mau dishare ke fb tinggal tambahkan --share diakhirnya terus copi link yang derikan
+
+Cara cek user yang login : ./user-login.sh
+
+Cara cek semua user : ./user-list
+
+Cek kualitas server : ./bench-network.sh
+
